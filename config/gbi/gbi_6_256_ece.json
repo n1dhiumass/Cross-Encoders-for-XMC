@@ -1,0 +1,22 @@
+{
+  "exp_id": "9_GradientInf",
+  "misc": "debug",
+
+  "bi_model_file": "",
+  "cross_model_file": "../../results/6_ReprCrossEnc/d=ent_link/m=cross_enc_l=ce_neg=bienc_hard_negs_s=1234_63_negs_w_crossenc_w_embeds/model/model-2-15999.0--79.46.ckpt",
+
+  "data_name" : "lego",
+  "n_ment": 1,
+
+
+  "init_method": "random",
+  "smooth_alpha": 0.000001,
+  "param_type": "per_label_weight",
+
+  "num_search_steps": 20,
+  "lr": 0.1,
+  "quant_method": "label_greedy"
+
+
+
+}

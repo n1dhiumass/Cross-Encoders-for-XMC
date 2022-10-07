@@ -1,0 +1,41 @@
+{
+  "exp_id": "8_CUR_EMNLP",
+  "misc": "",
+  "mode": "train",
+
+  "data_type" : "nq",
+  "data_dir" : "",
+  "trn_files" : [
+      "../../data/dpr/downloads/data/retriever_results/nq/single/dev.json",
+      "../../data/dpr/downloads/data/retriever_results/nq/single/tokenized_questions_nq_dev.json",
+      "../../data/dpr/downloads/data/retriever_results/nq/single/tokenized_passage_groups_nq_dev.json"
+  ],
+  "dev_files" : [
+    "../../data/dpr/downloads/data/retriever_results/nq/single/dev.json",
+    "../../data/dpr/downloads/data/retriever_results/nq/single/tokenized_questions_nq_dev.json",
+    "../../data/dpr/downloads/data/retriever_results/nq/single/tokenized_passage_groups_nq_dev.json"
+  ],
+
+
+  "neg_strategy": "precomp",
+  "neg_mine_bienc_model_file": "",
+
+  "model_type": "cross_enc",
+
+  "bert_model": "bert-base-uncased",
+  "max_input_len": 34,
+  "max_label_len": 128,
+
+
+  "type_optimization": "all_encoder_layers",
+
+  "pooling_type": "cls_w_lin",
+  "loss_type": "ce",
+
+  "train_batch_size": 32,
+  "grad_acc_steps": 4,
+  "eval_interval": 1000,
+
+  "data_parallel": false
+
+}

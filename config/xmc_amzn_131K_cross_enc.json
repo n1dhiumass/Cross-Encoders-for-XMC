@@ -1,0 +1,32 @@
+{
+  "exp_id": "6_XMC",
+  "misc": "",
+  "mode": "train",
+
+  "data_type" : "xmc",
+  "data_dir" : "../../data/1_LF-AmazonTitles-131K/raw",
+
+  "model_type": "cross_enc",
+
+  "bert_model": "bert-base-uncased",
+  "max_input_len": 128,
+  "max_label_len": 128,
+
+  "type_optimization": "all_encoder_layers",
+
+  "pooling_type": "cls",
+  "loss_type": "hinge",
+
+  "neg_strategy": "precomp",
+  "pos_strategy": "keep_pos_together",
+
+  "total_labels_per_input": 64,
+  "max_pos_labels":10,
+  "num_negs": 63,
+  "train_batch_size": 4,
+  "eval_interval": 0.5,
+
+  "dev_precomp_top_labels_fname":   "../../data/1_LF-AmazonTitles-131K/top_labels/SiameseXML++/Astec/1_LF-AmazonTitles-131K/bow/v_default_params_0/trn_predictions_clf.npz",
+  "train_precomp_top_labels_fname": "../../data/1_LF-AmazonTitles-131K/top_labels/SiameseXML++/Astec/1_LF-AmazonTitles-131K/bow/v_default_params_0/trn_predictions_clf.npz"
+
+}

@@ -1,0 +1,56 @@
+{
+  "exp_id": "_0_Debug",
+  "misc": "nsw_graph",
+  "mode": "train",
+  "debug_w_small_data": 1,
+
+  "data_type" : "ent_link",
+  "data_dir" : "",
+  "trn_files" : {
+    "pro_wrestling": [
+      "../../data/zeshel/processed/train_worlds/pro_wrestling_mentions.jsonl",
+      "../../data/zeshel/documents/pro_wrestling.json",
+      "../../data/zeshel/tokenized_entities/pro_wrestling_128_bert_base_uncased.npy"
+    ],
+    "pro_wrestling2": [
+      "../../data/zeshel/processed/train_worlds/pro_wrestling_mentions.jsonl",
+      "../../data/zeshel/documents/pro_wrestling.json",
+      "../../data/zeshel/tokenized_entities/pro_wrestling_128_bert_base_uncased.npy"
+    ]
+  },
+  "dev_files" : {
+    "pro_wrestling": [
+      "../../data/zeshel/processed/train_worlds/pro_wrestling_mentions.jsonl",
+      "../../data/zeshel/documents/pro_wrestling.json",
+      "../../data/zeshel/tokenized_entities/pro_wrestling_128_bert_base_uncased.npy"
+    ]
+  },
+
+
+  "neg_strategy": "nsw_graph",
+  "neg_mine_bienc_model_file": "",
+
+  "model_type": "cross_enc",
+
+  "bert_model": "bert-base-uncased",
+  "max_input_len": 128,
+  "max_label_len": 128,
+
+
+  "type_optimization": "all_encoder_layers",
+
+  "pooling_type": "cls_w_lin",
+  "loss_type": "ce",
+
+  "train_batch_size": 32,
+  "grad_acc_steps": 4,
+  "eval_interval": 200,
+
+  "data_parallel": false,
+
+  "nsw_max_nbrs": 10,
+  "nsw_num_paths": 4,
+  "nsw_embed_type": "bienc",
+  "num_negs_per_node": 8
+
+}

@@ -1,0 +1,18 @@
+{
+  "exp_id": "_0_Model_Porting",
+  "misc": "debug_model_porting",
+
+  "use_GPU": true,
+
+  "model_type": "cross_enc",
+
+  "bert_model": "bert-large-uncased",
+  "lowercase": true,
+
+  "add_linear_layer": true,
+
+  "max_input_len": 32,
+  "max_label_len": 128,
+
+  "pooling_type": "cls_w_lin"
+}

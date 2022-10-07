@@ -1,0 +1,45 @@
+{
+  "exp_id": "4_Zeshel",
+  "misc": "in_batch_negs",
+  "mode": "train",
+
+  "data_type" : "ent_link",
+  "data_dir" : "",
+  "trn_files" : {
+    "pro_wrestling": [
+      "../../data/zeshel/processed/train_worlds/pro_wrestling_mentions.jsonl",
+      "../../data/zeshel/documents/pro_wrestling.json",
+      "../../data/zeshel/tokenized_entities/pro_wrestling_128_bert_base_uncased.npy"
+    ]
+  },
+  "dev_files" : {
+    "pro_wrestling": [
+      "../../data/zeshel/processed/train_worlds/pro_wrestling_mentions.jsonl",
+      "../../data/zeshel/documents/pro_wrestling.json",
+      "../../data/zeshel/tokenized_entities/pro_wrestling_128_bert_base_uncased.npy"
+    ]
+  },
+
+
+  "neg_strategy": "random",
+
+
+  "model_type": "bi_enc",
+
+  "bert_model": "bert-base-uncased",
+  "max_input_len": 128,
+  "max_label_len": 128,
+
+
+  "type_optimization": "all_encoder_layers",
+
+  "pooling_type": "cls",
+  "loss_type": "ce",
+
+  "train_batch_size": 32,
+  "grad_acc_steps": 4,
+  "eval_interval": 1000,
+
+  "data_parallel": false
+
+}

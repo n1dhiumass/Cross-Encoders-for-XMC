@@ -1,0 +1,22 @@
+{
+  "exp_id": "9_GradientInf",
+  "misc": "debug",
+
+  "bi_model_file": "../../results/4_Zeshel/d=ent_link/m=bi_enc_l=ce_s=1234_hard_negs_wo_dp_bs_32/model/best_wrt_dev_9/wrapper_config.json",
+  "cross_model_file": "../../results/4_Zeshel/d=ent_link/m=cross_enc_l=ce_s=1234_hard_negs_wo_dp_bs_16_w_hard_bienc/model/best_wrt_dev/wrapper_config.json",
+
+  "data_name" : "lego",
+  "n_ment": 1,
+
+
+  "init_method": "random",
+  "smooth_alpha": 0.000001,
+  "param_type": "per_label_weight",
+
+  "num_search_steps": 10,
+  "lr": 0.1,
+  "quant_method": "label_greedy"
+
+
+
+}
