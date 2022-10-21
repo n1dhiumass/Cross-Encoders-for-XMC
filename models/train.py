@@ -1,7 +1,7 @@
 import os
 import sys
 import time
-import wandb
+# import wandb
 import logging
 import argparse
 
@@ -74,7 +74,7 @@ def main():
 	parser.add_argument("--config", type=str, required=True, help="config file")
 	
 	args, remaining_args = parser.parse_known_args()
-	
+	print("args",args)
 	config = Config(args.config)
 	
 	config.update_config_from_arg_list(dummy_config=Config(), arg_list=remaining_args)
@@ -83,8 +83,7 @@ def main():
 	
 	config.save_config(config.result_dir, "orig_config.json")
 	
-	if config.save_code: save_code(config)
-	
+	# if config.save_code: save_code(config)
 	run(config)
 
 

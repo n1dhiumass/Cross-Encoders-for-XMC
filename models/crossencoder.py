@@ -1526,7 +1526,7 @@ class CrossEncoderWrapper(pl.LightningModule):
 				checkpoint_callback.last_model_path = ""
 			
 	def on_train_batch_end(self, outputs, batch, batch_idx, unused=0):
-		super(CrossEncoderWrapper, self).on_train_batch_end(outputs=outputs, batch=batch, batch_idx=batch_idx, unused=unused)
+		super(CrossEncoderWrapper, self).on_train_batch_end(outputs=outputs, batch=batch, batch_idx=batch_idx)
 		
 		if (self.global_step + 1) % (self.config.print_interval * self.config.grad_acc_steps) == 0:
 			# train_loss = float(outputs['loss'].cpu().numpy())

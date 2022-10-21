@@ -39,8 +39,6 @@ logging.basicConfig(
 )
 
 LOGGER = logging.getLogger(__name__)
-
-
 def load_pairwise_model(config):
 	
 	if config.model_type == "bi_enc":
@@ -197,6 +195,7 @@ class EntLinkData(LightningDataModule):
 			return num_batches
 		elif self.config.data_type in ["xmc"]:
 			batch_size = int(self.config.train_batch_size/self.config.grad_acc_steps)
+			print("Batch size", batch_size, self.config.train_batch_size, self.config.grad_acc_steps)
 			assert isinstance(self.raw_train_data, XMCDataset)
 			total_inputs = len(self.raw_train_data.data)
 			num_batches = int(total_inputs/batch_size)
@@ -276,25 +275,13 @@ class BasePairwiseTrainer(object):
 		# wandb initialization
 		config_dict = self.config.__dict__
 		config_dict["CUDA_DEVICE"] = os.environ["CUDA_VISIBLE_DEVICES"]
-		
-		os.environ["WANDB_API_KEY"] = "6ae7d53ecce3f7d824317087c3973ebd50e29bb3"
-		self.wandb_logger = WandbLogger(project=f"{self.config.exp_id}", dir=self.config.result_dir, config=config_dict)
-		try:
-			wandb.init(project=f"{self.config.exp_id}", dir=self.config.result_dir, config=config_dict)
-		except Exception as e:
-			try:
-				LOGGER.info(f"Trying with wandb.Settings(start_method=fork) as error = {e} as raised")
-				wandb.init(project=f"{self.config.exp_id}", dir=self.config.result_dir, config=config_dict,
-						   settings=wandb.Settings(start_method="fork"))
-			except Exception as e:
-				LOGGER.info(f"Error raised = {e}")
-				LOGGER.info("Running wandb in offline mode")
-				wandb.init(project=f"{self.config.exp_id}", dir=self.config.result_dir, config=config_dict,
-						   mode="offline")
+		# self.wandb_logger = WandbLogger(project=f"{self.config.exp_id}", dir=self.config.result_dir, config=config_dict)
+		# wandb.init(project=f"{self.config.exp_id}", dir=self.config.result_dir, config=config_dict,mode="disabled")
+
 		
 		
 		# Create datamodule
-		self.data	  	= EntLinkData(config=config)
+		self.data = EntLinkData(config=config)
 		
 		# Load the model and optimizer
 		self.pw_model 	= load_pairwise_model(config=self.config)
@@ -310,7 +297,7 @@ class BasePairwiseTrainer(object):
 		
 	def train(self):
 		seed_everything(self.config.seed, workers=True)
-
+		print("Config", self.config.__dict__)
 		if self.config.neg_strategy in ["precomp", "random"]:
 			pass
 		elif self.config.model_type == "bi_enc" and self.config.neg_strategy in ["bienc_hard_negs", "top_ce_as_pos_w_bienc_hard_negs", "top_ce_w_bienc_hard_negs_trp", "top_ce_w_bienc_hard_negs_ml"]:
@@ -323,6 +310,7 @@ class BasePairwiseTrainer(object):
 			assert self.config.reload_dataloaders_every_n_epochs == 0, f"Invalid combo of model_type = {self.config.model_type} and neg_strategy = {self.config.neg_strategy}, joint_train_alpha = {self.config.joint_train_alpha}"
 		
 		metric_to_monitor =  f"dev_{self.config.ckpt_metric}"
+		print("Model_dir", self.config.model_dir)
 		checkpoint_callback = ModelCheckpoint(
 			save_top_k=self.config.num_top_k_ckpts,
 			monitor=metric_to_monitor,
@@ -356,6 +344,7 @@ class BasePairwiseTrainer(object):
 		auto_lr_find = False
 		
 		val_check_interval = int(self.config.eval_interval*self.config.grad_acc_steps) if self.config.eval_interval > 1 else self.config.eval_interval
+		
 		trainer = Trainer(
 			gpus=self.config.num_gpus,
 			strategy=strategy,
@@ -368,8 +357,8 @@ class BasePairwiseTrainer(object):
 			val_check_interval=val_check_interval,
 			gradient_clip_val=self.config.max_grad_norm,
 			callbacks=[lr_monitor, checkpoint_callback, end_of_epoch_checkpoint_callback],
-			logger=self.wandb_logger,
-			auto_lr_find=auto_lr_find,
+			# logger=self.wandb_logger,
+			# auto_lr_find=auto_lr_find,
 			profiler="simple",
 			num_sanity_val_steps=0
 		)

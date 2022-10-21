@@ -1,0 +1,34 @@
+{
+    "exp_id": "XMC_crossencoder",
+    "misc": "",
+    "mode": "train",
+  
+    "data_type" : "xmc",
+    "data_dir" : "/work/nidhichandra_umass_edu/repos/LF-Amazon-131K",
+    "data_name" : "LF-Amazon-131k",
+  
+    "model_type": "cross_enc",
+    "bert_model": "bert-base-uncased",
+    "max_input_len": 128,
+    "max_label_len": 128,
+  
+    "type_optimization": "all_encoder_layers",
+  
+    "pooling_type": "cls",
+    "loss_type": "hinge",
+  
+    "neg_strategy": "precomp",
+    "pos_strategy": "keep_pos_together",
+  
+    "total_labels_per_input": 64,
+    "max_pos_labels":10,
+    "num_negs": 63,
+    "train_batch_size": 4,
+    "eval_interval": 0.5,
+    "num_epochs":4,
+    "grad_acc_steps":2,
+  
+    "dev_precomp_top_labels_fname":   "/work/nidhichandra_umass_edu/repos/siamesexml/siamesexml/results/SiameseXML/Astec/LF-AmazonTitles-131K/v_0_108/dev_predictions_clf.npz",
+    "train_precomp_top_labels_fname": "/work/nidhichandra_umass_edu/repos/siamesexml/siamesexml/results/SiameseXML/Astec/LF-AmazonTitles-131K/v_0_108/trn_predictions_clf.npz"
+  
+  }

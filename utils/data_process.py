@@ -76,7 +76,7 @@ def load_raw_data(config, data_split_type):
 			raise Exception(f"data_type = {data_split_type} not supported")
 		
 		lbl_file = f"{data_dir}/lbl.json"
-		
+		print("lower_case", config.lowercase)
 		data = read_xmc_data(input_file=input_file, lbl_file=lbl_file, lower_case=config.lowercase)
 		return data
 	elif config.data_type in ["ent_link"]:
@@ -302,14 +302,16 @@ def load_entities(entity_file):
 
 def _get_topk_from_sparse(X, k):
 	"""
-	Get top-k indices for each row in given scipt sparse matrix
+	Get top-k indices for each row in given scipy sparse matrix
 	:param X: Sparse array
 	:param k:
 	:return:
 	"""
 	X = X.tocsr()
 	X.sort_indices()
-	pad_indx = X.shape[1]
+	pad_indx = X.shape[1] - 1
+	# import pdb
+	# pdb.set_trace()
 	indices = topk(X, k, pad_indx, 0, return_values=False)
 	return indices
 	
@@ -2197,6 +2199,7 @@ def get_xmc_dataset(model_type, tokenizer, input_data, labels, max_input_len, ma
 				# Filter out an positive label from current top labels and we will use them as negatives
 				curr_neg_label_idxs = [idx for idx in curr_pred_label_idxs if idx not in pos_label_idxs[data_ctr]]
 				
+
 				assert len(curr_neg_label_idxs) >= num_negs, f"len(curr_neg_label_idxs) = {len(curr_neg_label_idxs)} should be larger than or equal to num_negs = {num_negs}"
 				
 				neg_labels_idxs += [curr_neg_label_idxs[:num_negs]]
@@ -2290,106 +2293,6 @@ def get_xmc_dataset(model_type, tokenizer, input_data, labels, max_input_len, ma
 	except Exception as e:
 		embed()
 		raise e
-
-
-def get_passage_retrieval_dataset(model_type, tokenizer, raw_data, tknzd_q_file, tknzd_psg_file, num_negs,
-								  max_input_len, max_label_len, use_top_negs, seed):
-	
-	
-	rng = np.random.default_rng(seed)
-	
-	ENT_START_TAG_ID = tokenizer.convert_tokens_to_ids([ENT_START_TAG])[0]
-	ENT_END_TAG_ID = tokenizer.convert_tokens_to_ids([ENT_END_TAG])[0]
-	SEP_TOKEN_ID = tokenizer.sep_token_id
-	CLS_TOKEN_ID = tokenizer.cls_token_id
-	
-	LOGGER.info("Loading tokenized questions")
-	# Read Tokenized questions and pad/truncate them to given max_input_len. Also add special tokens to question for E-CrossEnc model
-	with open(tknzd_q_file, "r") as fin:
-		dump_dict = json.load(fin)
-		all_tknzd_ques = dump_dict["data"]
-		
-		assert all([tkn_ids[0] == CLS_TOKEN_ID for tkn_ids in all_tknzd_ques])
-		# 1.  Convert from [CLS] QUESTION_TOKENS --> [CLS] [ENT_START] QUESTION_TOKENS [ENT_END] [SEP] [0...0] format
-		# 1.1 First truncate question to create space for 4 additional tokens - CLS, ENT_START, ENT_END, SEP, and remove [CLS] token already present in question tokens
-		all_tknzd_ques = [ tkn_ids[1:max_input_len-3] for tkn_ids in all_tknzd_ques]
-		
-		# 1.2 Add special tokens are required places, and additional pad tokens after that
-		all_tknzd_ques = [ [CLS_TOKEN_ID, ENT_START_TAG_ID] + tkn_ids + [ENT_END_TAG_ID, SEP_TOKEN_ID] + [0]*(max_input_len) for tkn_ids in all_tknzd_ques]
-		
-		# 1.3 Truncate to fix length = max_input_len
-		all_tknzd_ques = [tkn_ids[:max_input_len] for tkn_ids in all_tknzd_ques]
-		
-		# all_tknzd_ques = [tkn_ids[:max_input_len] + [0]*(max_input_len - len(tkn_ids)) for tkn_ids in all_tknzd_ques]
-		all_tknzd_ques = torch.LongTensor(all_tknzd_ques)
-	
-	
-	LOGGER.info("Loading tokenized passage data")
-	# Read Tokenized passages paired with questions and pad/truncate them to given max_input_len
-	with open(tknzd_psg_file, "r") as fin:
-		dump_dict = json.load(fin)
-		all_tknzd_passages = dump_dict["data"]
-		
-		all_tknzd_passages_padded = []
-		for curr_tknzd_psg_group in tqdm(all_tknzd_passages):
-			
-			curr_tknzd_psg_group = [tkn_ids[:max_label_len] + [0]*(max_label_len - len(tkn_ids)) for tkn_ids in curr_tknzd_psg_group]
-			all_tknzd_passages_padded += [curr_tknzd_psg_group]
-		
-		all_tknzd_passages = torch.LongTensor(all_tknzd_passages_padded)
-	
-	
-	assert model_type == "cross_enc", f"Model_Type should be cross_enc and not {model_type}"
-	assert len(raw_data) == len(all_tknzd_ques) == len(all_tknzd_passages), f"Len of raw_data = {len(raw_data)}, {len(all_tknzd_ques)}, len({all_tknzd_passages}) should match"
-	
-	pos_paired_token_idxs = []
-	neg_paired_token_idxs = []
-	num_ques_skipped = 0
-	LOGGER.info("Creating pos and neg question-passage pairs")
-	for q_ctr, (raw_ques_n_psg, tknzd_ques, tknzd_passages) in tqdm(enumerate(zip(raw_data, all_tknzd_ques, all_tknzd_passages)), total=len(raw_data)):
-		
-		pos_tknzd_passages = [tknzd_psg for raw_psg, tknzd_psg in zip(raw_ques_n_psg["ctxs"], tknzd_passages) if raw_psg["has_answer"]]
-		neg_tknzd_passages = [tknzd_psg for raw_psg, tknzd_psg in zip(raw_ques_n_psg["ctxs"], tknzd_passages) if not raw_psg["has_answer"]]
-		
-		if len(neg_tknzd_passages) == 0:
-			num_ques_skipped += 1
-			LOGGER.info(f"No negative passage!! q_ctr = {q_ctr} len(neg_tknzd_passages) = {len(neg_tknzd_passages)}, len(pos_tknzd_passages) = {len(pos_tknzd_passages)}")
-			continue
-			
-		while len(neg_tknzd_passages) < num_negs:
-			neg_tknzd_passages += neg_tknzd_passages
-			
-		# Keep top neg passages if use_top_negs is True else keep all neg passage for random sampling
-		neg_tknzd_passages = neg_tknzd_passages[:num_negs] if use_top_negs else neg_tknzd_passages
-		
-		assert len(neg_tknzd_passages) == num_negs or ( not use_top_negs), f"len(neg_tknzd_passages) = {len(neg_tknzd_passages)} != num_negs = {num_negs} and use_top_negs = {use_top_negs}"
-		
-		
-		# Pair positive passages with the question, and also create copies of corresponding negative passages for the given question
-		for curr_pos_passage_tkns in pos_tknzd_passages:
-			pos_pair_rep = create_input_label_pair(input_token_idxs=tknzd_ques, label_token_idxs=curr_pos_passage_tkns)
-			
-			# Pair negative passages with the question
-			neg_idxs = list(range(num_negs)) if use_top_negs else rng.choice(len(neg_tknzd_passages), size=num_negs, replace=False)
-			curr_neg_pair_reps = [create_input_label_pair(input_token_idxs=tknzd_ques, label_token_idxs=neg_tknzd_passages[neg_idx]).unsqueeze(0) for neg_idx in neg_idxs]
-			
-			curr_neg_pair_reps = torch.cat(curr_neg_pair_reps) # Shape: num_negs, pair_seq_len (= ques_seq_len + passage_seq_len)
-			
-			
-			pos_paired_token_idxs += [pos_pair_rep.unsqueeze(0)]
-			neg_paired_token_idxs += [curr_neg_pair_reps.unsqueeze(0)]
-		
-	
-	pos_paired_token_idxs = torch.cat(pos_paired_token_idxs) # Shape: *, pair_seq_len
-	neg_paired_token_idxs = torch.cat(neg_paired_token_idxs) # Shape: *, num_negs, pair_seq_len
-	tokenized_tensor_data = TensorDataset(pos_paired_token_idxs, neg_paired_token_idxs)
-	
-	LOGGER.info(f"Pos paired token shape : {pos_paired_token_idxs.shape}")
-	LOGGER.info(f"Neg paired token shape : {neg_paired_token_idxs.shape}")
-	LOGGER.info(f"Number of questions skipped: {num_ques_skipped}")
-	return tokenized_tensor_data
-
-
 
 def _get_dataset_from_tokenized_inputs(model_type, tokenized_inputs, tokenized_labels, pos_label_idxs, neg_labels_idxs):
 	"""
